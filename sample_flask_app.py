@@ -1,4 +1,7 @@
 # Import statements necessary
+import requests
+import json
+import random
 from flask import Flask, render_template
 from flask_script import Manager
 
@@ -28,6 +31,20 @@ def basic_values_list(name):
         shortname = name
     return render_template('values.html',word_list=lst,long_name=longname,short_name=shortname)
 
+@app.route('/word/<new_word>')
+def datamuse_api(new_word):
+    params = {}
+    baseurl = "https://api.datamuse.com/words"
+    params['rel_rhy'] = new_word
+    datamuse_data = json.loads(requests.get(baseurl, params=params).text)
+    
+    # turn data into a list
+    rhyme_list = []
+    for resultdict in datamuse_data:
+        rhyme_list.append(resultdict['word'])
+
+    return random.choice(rhyme_list)
+
 
 ## PART 1: Add another route /word/<new_word> as the instructions describe.
 
@@ -37,7 +54,7 @@ def basic_values_list(name):
 def photo_titles(tag, num):
     # HINT: Trying out the flickr accessing code in another file and seeing what data you get will help debug what you need to add and send to the template!
     # HINT 2: This is almost all the same kind of nested data investigation you've done before!
-    FLICKR_KEY = "" # TODO: fill in a flickr key
+    FLICKR_KEY = "d1c46d4175d142631deb5bcd7ca36d8b" # TODO: fill in a flickr key
     baseurl = 'https://api.flickr.com/services/rest/'
     params = {}
     params['api_key'] = FLICKR_KEY
@@ -50,8 +67,11 @@ def photo_titles(tag, num):
     trimmed_text = response_obj.text[14:-1]
     flickr_data = json.loads(trimmed_text)
     # TODO: Add some code here that processes flickr_data in some way to get what you nested
+    # return str(flickr_data)
+    photo_titles = [x['title'] for x in flickr_data['photos']['photo']]
+
     # TODO: Edit the invocation to render_template to send the data you need
-    return render_template('photo_tags.html')
+    return render_template('photo_info.html', num = num, photo_titles = photo_titles)
 
 
 
